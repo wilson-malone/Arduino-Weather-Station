@@ -37,13 +37,13 @@ struct TPHData {
   int16_t pressure = 9999;
   int16_t humidity = 99;
   int16_t speed = 9;
-  int16_t direction = 17;
+  int16_t direction = 18;
 };
 
 TPHData Bundle;  // Make a variable for the structure above and call it 'Bundle'
 
 //The displayed directions correspond to this list.
-char *_direction_list[] = { "   N", " NNE", "  NE", " ENE", "   E", " ESE", "  SE", " SSE", "   S", " SSW", "  SW", " WSW", "   W", " WNW", "  NW", " NNW", "   N", "INIT", "FAIL", "STBY" };
+char *_direction_list[] = { "   N", " NNE", "  NE", " ENE", "   E", " ESE", "  SE", " SSE", "   S", " SSW", "  SW", " WSW", "   W", " WNW", "  NW", " NNW", "   N", "FAIL", "INIT", "STBY" };
 
 char tempString[10];  // Will be used with sprintf to create strings
 char pressString[10];

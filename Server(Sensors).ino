@@ -178,7 +178,7 @@ void loop() {
 
   Bundle.speed = wind_functions.readWindSpeed(0x03) * 2.236;  // convert to miles per hour
 
-  Bundle.direction = wind_functions.readWindDirection(0x02);
+  Bundle.direction = wind_functions.readWindDirection16(0x02);
 
   RF.Radio();
 

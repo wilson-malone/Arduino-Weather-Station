@@ -18,6 +18,8 @@ Power considerations:
 
 The transmitter and sensors have been measured by a multimeter to use an average of 90mA over time. The transmitter spikes to 150mA during transmissions, however the average remains lower. The shortest day-length in the intended region is 8 hours, constituting 1/3 of the 24 hour cycle. The solar panel average output must therefore be at least 300mA over the course of a day to run the transmitter and charge the battery sufficiently. Solar panels rated at 1A will be preferred to account for inefficiencies resulting from cloud cover and obstacles. The battery will be 12 volts lead acid, chosen for its stable chemistry and suitability to deep discharging. To run through the night, the transmitter will use 1.44Ah of energy. Running a battery at or near its capacity is undesirable and reduces battery life, therefore, a battery with a significantly larger capacity will be used.
 
+The reciever and components have a measured power consumption of 110mA.
+
 
 Components
 

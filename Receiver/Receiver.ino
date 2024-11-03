@@ -1,10 +1,11 @@
+#include "thingProperties.h"
 #include <Wire.h>                           // Include the Arduino I2C library
 #include <SPI.h>                            //Serial Peripheral interface. This is used for the radio
 #include <RH_RF69.h>                        //Radiohead Library for the receiver
 #include <SparkFun_Alphanumeric_Display.h>  //The 14 segment alphanumeric display library
 #include <s7s.h>
 #include <RHDatagram.h>
-#include <WDT.h>
+
 
 #define SERVER_ADDRESS 1 //Radio server address
 #define MY_ADDRESS 2 // This device's address
@@ -101,11 +102,39 @@ void display_data(){
     s7dis.Transmit(speedString, 0b00000100, 0x71);
 }
 
+void cloudUpdate(){
+    ArduinoCloud.update();
+    nethumid = Bundle.humidity;
+    netpress = Bundle.pressure;
+    netpress /= 100;
+    netspeed = Bundle.speed;
+    netspeed /=10;
+    nettemp = Bundle.temperature;
+    netdirection = Bundle.direction;
+}
+
 //setup function
+
 void setup() {
-  Serial.begin(115200);
+  // Initialize serial and wait for port to open:
+  Serial.begin(9600);
+
+  // Defined in thingProperties.h
+  initProperties();
+
+  // Connect to Arduino IoT Cloud
+  ArduinoCloud.begin(ArduinoIoTPreferredConnection, false);
   
-  Serial.println("Serial Begin...");
+  /*
+     The following function allows you to obtain more information
+     related to the state of network and IoT Cloud connection and errors
+     the higher number the more granular information you’ll get.
+     The default is 0 (only errors).
+     Maximum is 4
+ */
+  setDebugMessageLevel(4);
+  ArduinoCloud.printDebugInfo();
+  
   Wire.begin();  // Initialize hardware I2C pins
   Serial.println("Wire I2C library begin");
     
@@ -181,29 +210,19 @@ void setup() {
 
   //End Radio Initialization
 
-   if(WDT.begin(5500)) {
-    Serial.print("WDT interval: "); Serial.print(WDT.getTimeout()); Serial.println(" ms");
-  } else {
-    Serial.println("Error initializing watchdog");
-      while(1){}
-  }
-
-
   Serial.println("Setup Complete");
 
-  Serial.end();
-
   RadioTX();
-
+  
+  
 }
-
 
 void loop() {
   if (millis() - radio_timer > 2000){
     RadioTX();
     transmit_counter++;
   }
-
+  
   //Call the radio receive function.
   if (!rf69_manager.available()) {
     if(transmit_counter > 2){
@@ -219,17 +238,17 @@ void loop() {
           if (rf69_manager.waitAvailableTimeout(1000)){
             RadioCopy();
             display_data();
+            cloudUpdate();
             break;
           }
-          WDT.refresh(); //refresh the watchdog
         }
       }
     }  
   }else{
     RadioCopy();
     display_data();
+    cloudUpdate();
   }
-
 
   if(blink==false && LEDstatus==true && millis()-blink_interval>40){
     digitalWrite(LED, LOW);
@@ -242,9 +261,6 @@ void loop() {
     LEDstatus=true;
     blink_interval=millis();
   }
-
-  WDT.refresh();
+  
 }
-
-
 

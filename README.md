@@ -4,8 +4,8 @@ Weather Measurement and Wireless Reporting Device
 
 Custom Libraries Needed:
 
-WindFunctions: https://github.com/wilson-malone/RS485_Wind_Direction_Speed_Sensors_Arduino
-
+Wind Functions: https://github.com/wilson-malone/RS485_Wind_Direction_Speed_Sensors_Arduino: Avaialable through the Arduino IDE library manager.
+s7s: A quick and light library to use the 7 segment displays. Download it here.
 
 Objective: To provide a means of measuring the parameters of atmospheric temperature, humidity, pressure, wind direction, and wind speed. The parameters are then to be transmitted wirelessly to a receiver and display unit.
 

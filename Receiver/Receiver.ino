@@ -29,8 +29,8 @@
 #define SERVER_ADDRESS 1 //Radio server address
 #define MY_ADDRESS 2 // This device's address
 
-#define RF69_FREQ 915.0  //915mhz for USA and Canada
-#define POWER 5       // Radio power output dbm
+#define RF69_FREQ 902.3  //915mhz for USA and Canada
+#define POWER 6       // Radio power output dbm
 #define RFM69_CS 4   // Radio pin for Chip Select
 #define RFM69_INT 3  // radio pin for IRQ interrupt.
 #define RFM69_RST 2  // Radio pin for radio reset
@@ -75,7 +75,7 @@ RHDatagram rf69_manager(rf69, MY_ADDRESS);
 #define CONFIG_GFSK (RH_RF69_DATAMODUL_DATAMODE_PACKET | RH_RF69_DATAMODUL_MODULATIONTYPE_FSK | RH_RF69_DATAMODUL_MODULATIONSHAPING_FSK_BT1_0)
 #define CONFIG_MANCHESTER (RH_RF69_PACKETCONFIG1_PACKETFORMAT_VARIABLE | RH_RF69_PACKETCONFIG1_DCFREE_MANCHESTER | RH_RF69_PACKETCONFIG1_CRC_ON | RH_RF69_PACKETCONFIG1_ADDRESSFILTERING_NONE)
 
-static const RH_RF69::ModemConfig Table = {CONFIG_GFSK, 0x06, 0x83, 0x02, 0x75, 0xf3, 0xf3, CONFIG_MANCHESTER};
+static const RH_RF69::ModemConfig Table = { CONFIG_GFSK, 0x01, 0x00, 0x08, 0x00, 0xe1, 0xe1, CONFIG_MANCHESTER};
 
 //The displayed directions correspond to this list. Uncomment if using the 16 direction option.
 //The wind direction sensor vane has two Norths 0x00 and 0x10 for some reason. It also transmits both 000 and 360 when
@@ -251,13 +251,13 @@ void loop() {
 
   //Call the radio receive function.
   if (!rf69_manager.available()) {
-    messageRX=false;
-    if(transmit_counter > 2 && standby==false){
+    if(!standby && transmit_counter > 2){
       s7dis.clearDisplayI2C(0x01);
       s7dis.clearDisplayI2C(0x02);
       s7dis.clearDisplayI2C(0x03);
       s7dis.clearDisplayI2C(0x71);
       standby=true;
+      messageRX=false;
     }  
   }else{
     RadioCopy();
@@ -266,7 +266,7 @@ void loop() {
   }
 
 if (standby) {
-    if (millis() - standbytimer > 1000) {
+    if (!messageRX && millis() - standbytimer > 1000) {
         _14display.print(message[errcounter]);
         errcounter++;
         standbytimer = millis();
@@ -281,7 +281,6 @@ if (standby) {
     if (messageRX == true) {
         standby = false;
         errcounter = 0;
-        messageRX = false;  // Clear the message flag to debounce
     }
 }
   

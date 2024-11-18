@@ -4,9 +4,9 @@
 #include <RH_RF69.h>          //Radiohead library
 #include <SPI.h>              // Used for radio
 #include <WindFunctions.h>    //Wind sensors: anemometer and wind direction vane
-#include <avr/wdt.h>          // watchdog to prevent program hangups
 #include <RHDatagram.h>
-
+#include <avr/sleep.h>
+#include <avr/interrupt.h>
 
 // Configuration
 #define SERVER_ADDRESS 1 //This device's radio address
@@ -96,17 +96,36 @@ void GetTPHSensorReadings() {
   }
 }
 
+void goToSleep() {
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  sleep_enable();
+  sei();
+  sleep_cpu();
+  //Resumes here after sleep interrupt from radio
+  sleep_disable();
+  standby = false;
+  digitalWrite(WINDSENSORS, HIGH);
+  delay(1000); //The wind sensors don't wake up very quickly, and will give garbage readings.
+}
+
+void wakeUp() {
+  //Nothing needs to be done here.
+
+}
+
 
 void setup() {
   Serial.begin(9600);
 
-  wdt_enable(WDTO_8S);  // Enable the Watchdog at 8 seconds. Resets the board if there's a hangup somewhere.
+  //wdt_enable(WDTO_8S);  // Enable the Watchdog at 8 seconds. Resets the board if there's a hangup somewhere.
   Serial.println("Watchdog enable");
 
   
   // disable ADC
   ADCSRA = 0;
   Serial.println("ADC turned off");
+
+  attachInterrupt(digitalPinToInterrupt(RFM69_INT), wakeUp, RISING);
 
   // Try to initialize adafruit sensor
   if (!ms8607.begin()) {
@@ -147,12 +166,6 @@ void setup() {
     Serial.println("Frequency Set");
   }
 
-  // if(!rf69.setModemConfig(rf69.GFSK_Rb2_4Fd4_8)) {
-  //   Serial.println("Modem config wrong");
-  // }else {
-  //   Serial.println("Modem set OK");
-  // }
-
   rf69.setModemRegisters(&Table);
 
   // If you are using a high power RF69 eg RFM69HW, you *must* set a Tx power with the
@@ -166,23 +179,14 @@ void setup() {
 
 void loop() {
 
-  if(standby && messageRX){
-    digitalWrite(WINDSENSORS, HIGH);
-    standby = false;
-  }
-
   if (!rf69_manager.available()){
     if (!standby && millis()-current_time > 8000){
       digitalWrite(LED, LOW);
       digitalWrite(WINDSENSORS, LOW);
-      Bundle.temperature = 7;
-      Bundle.pressure = 7;
-      Bundle.humidity = 7;
-      Bundle.speed = 7;
-      Bundle.direction = 19;
-      EndianChanger();
+      rf69.setModeRx();
       messageRX = false;
       standby = true;
+      goToSleep();
     }
   }else{
     RadioRX();
@@ -221,5 +225,4 @@ void loop() {
     blink_interval=millis();
   }
 
-  wdt_reset();
 }
